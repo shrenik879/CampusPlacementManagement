@@ -1,0 +1,15 @@
+import api from './api';
+export const getAdminUsers = (params = {}) => api.get('/admin/users', { params });
+export const deleteAdminUser = (id) => api.delete(`/admin/user/${id}`);
+export const blockUser = (id) => api.put(`/admin/block/${id}`);
+export const unblockUser = (id) => api.put(`/admin/unblock/${id}`);
+export const approveCompany = (id) => api.put(`/admin/approve/${id}`);
+export const rejectCompany = (id) => api.put(`/admin/reject/${id}`);
+export const getAdminJobs = (params = {}) => api.get('/admin/jobs', { params });
+export const deleteAdminJob = (id) => api.delete(`/admin/job/${id}`);
+export const updateJobStatus = (id, status) => api.put(`/admin/job/${id}/status`, null, { params: { status } });
+export const toggleJobFlag = (id) => api.put(`/admin/job/${id}/flag`);
+export const getAdminApplications = () => api.get('/admin/applications');
+export const broadcastNotification = (message, targetRole) => api.post('/admin/broadcast', { message, targetRole });
+export const getAuditLogs = () => api.get('/admin/audit-logs');
+export const getAdminStats = () => api.get('/admin/stats');
