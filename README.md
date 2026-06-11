@@ -7,9 +7,38 @@ A production-grade, full-stack web application built to orchestrate the complete
 🔗 **Source Code:** [GitHub Repository](https://github.com/shrenik879/CampusPlacementManagement)
 ---
 ## 🏗️ System Architecture
-The application follows a clean **N-Tier Architecture** designed for scalability, security, and maintainability:
-┌─────────────────────────────────────────────────────┐ │ CLIENT TIER (React + Vite) │ │ Role-Based UI | WebSocket Client | Axios │ └───────────────────────────┬─────────────────────────┘ │ HTTPS / WebSocket ┌───────────────────────────▼─────────────────────────┐ │ SECURITY TIER (Spring Security + Bucket4j) │ │ JWT Filter | Rate Limiter | CORS Config │ └───────────────────────────┬─────────────────────────┘ │ ┌───────────────────────────▼─────────────────────────┐ │ APPLICATION TIER (Spring Boot Services) │ │ Business Logic | @Async Email | Gemini AI │ │ Resume Parser | Recommendations | Rounds │ └──────────────┬──────────────────┬───────────────────┘ │ │ ┌──────────────▼──────┐ ┌────────▼──────────────────┐ │ CACHE TIER │ │ DATA TIER │ │ Redis (Docker) │ │ MySQL + Spring Data JPA │ │ TTL: 10 minutes │ │ Pagination + Sorting │ └─────────────────────┘ └───────────────────────────┘
 
+```mermaid
+flowchart TD
+
+A[Client Tier<br/>React + Vite] -->|HTTPS / WebSocket| B[Security Tier]
+
+B --> C[JWT Authentication]
+B --> D[Bucket4j Rate Limiting]
+B --> E[CORS Configuration]
+
+C --> F[Spring Boot Application Layer]
+D --> F
+E --> F
+
+F --> G[Business Logic]
+F --> H[Gemini AI Chatbot]
+F --> I[Resume Parser]
+F --> J[Recommendation Engine]
+F --> K[Async Email Service]
+
+F --> L[(Redis Cache)]
+F --> M[(MySQL Database)]
+
+L --> N[Analytics Cache]
+L --> O[Platform Stats Cache]
+
+M --> P[Users]
+M --> Q[Jobs]
+M --> R[Applications]
+M --> S[Interview Rounds]
+M --> T[Audit Logs]
+```
 
 
 ---
@@ -123,8 +152,144 @@ The application follows a clean **N-Tier Architecture** designed for scalability
 | Notifications | react-hot-toast |
 | Icons | lucide-react |
 ---
+## 🔄 Placement Workflow
+
+```mermaid
+flowchart LR
+
+A[Student Registers]
+--> B[Upload Resume]
+
+B --> C[Apply for Job]
+
+C --> D[Company Reviews Application]
+
+D --> E[Aptitude Round]
+
+E --> F[Technical Round]
+
+F --> G[HR Round]
+
+G --> H[Selected]
+
+E --> X[Failed]
+F --> X
+G --> X
+
+X[Rejected]
+```
+## 🔐 Authentication Flow
+
+```mermaid
+sequenceDiagram
+
+participant User
+participant Frontend
+participant Backend
+participant Database
+
+User->>Frontend: Login
+Frontend->>Backend: Credentials
+
+Backend->>Database: Validate User
+
+Database-->>Backend: User Data
+
+Backend-->>Frontend: JWT Token
+
+Frontend->>Backend: API Request + JWT
+
+Backend-->>Frontend: Authorized Response
+```
+## 📄 Resume Parsing Flow
+
+```mermaid
+flowchart LR
+
+A[PDF Resume]
+--> B[Apache PDFBox]
+
+B --> C[Extract Text]
+
+C --> D[Skill Detection]
+
+C --> E[Email Detection]
+
+C --> F[Phone Detection]
+
+C --> G[Education Detection]
+
+D --> H[ParsedResume DTO]
+E --> H
+F --> H
+G --> H
+```
+## 📡 Real-Time Notification System
+
+```mermaid
+flowchart TD
+
+A[Application Status Change]
+
+A --> B[Notification Service]
+
+B --> C[WebSocket STOMP]
+
+B --> D[REST Fallback Store]
+
+C --> E[Online User]
+
+D --> F[Offline User]
+
+F --> G[Delivered on Next Poll]
+```
+## 🎯 Job Recommendation Engine
+
+```mermaid
+flowchart LR
+
+A[Student Skills]
+--> D[Scoring Engine]
+
+B[Job Title]
+--> D
+
+C[Job Description]
+--> D
+
+D --> E[TF-IDF Weighted Score]
+
+E --> F[Recency Bonus]
+
+F --> G[Rank Jobs]
+
+G --> H[Top 10 Recommendations]
+```
 ## 📂 Complete Project Structure
-campus-placement-system/ │ ├── frontend/ # React Application (Vite) │ ├── src/ │ │ ├── components/ │ │ │ ├── Chatbot.jsx # AI Chatbot UI (Gemini-powered) │ │ │ ├── Navbar.jsx # Role-aware navigation bar │ │ │ ├── NotificationBell.jsx # Real-time notification bell │ │ │ ├── PrivateRoute.jsx # Route guard (auth + role check) │ │ │ ├── ResumeParserSection.jsx # Resume upload + parsed results │ │ │ └── ui/ # Reusable UI components │ │ ├── context/ # React Context (AuthContext) │ │ ├── hooks/ # Custom React hooks │ │ ├── pages/ │ │ │ ├── admin/ │ │ │ │ └── AdminDashboard.jsx # User mgmt, analytics, approvals │ │ │ ├── auth/ # Login & Registration pages │ │ │ ├── company/ │ │ │ │ ├── CompanyDashboard.jsx # Job posting + applicant mgmt │ │ │ │ ├── ApplicantsPage.jsx # Review & manage candidates │ │ │ │ └── AnalyticsPage.jsx # Hiring funnel analytics │ │ │ ├── student/ │ │ │ │ ├── StudentDashboard.jsx # Job recommendations + profile │ │ │ │ ├── MyApplicationsPage.jsx # Application tracking │ │ │ │ └── ResumeUploadPage.jsx # PDF resume upload + parsing │ │ │ ├── jobs/ # Public job listing pages │ │ │ └── profile/ # User profile edit pages │ │ ├── services/ # Axios API service layer │ │ └── App.jsx # Router + layout wrapper │ └── package.json │ ├── src/main/java/shrenikcom/example/campusPlacementSystem/ │ ├── config/ │ │ ├── AsyncConfig.java # Enables @Async thread pool │ │ ├── CacheLogger.java # AOP aspect: logs cache HIT/MISS │ │ ├── CloudinaryConfig.java # Cloudinary SDK setup │ │ ├── RedisCacheErrorHandler.java # Silent Redis failure handler │ │ ├── RedisConfig.java # TTL=10min, key prefix, null-disabled │ │ ├── SecurityConfig.java # Spring Security filter chain │ │ ├── WebConfig.java # CORS configuration │ │ └── WebSocketConfig.java # STOMP + SockJS broker setup │ │ │ ├── controller/ │ │ ├── AdminController.java # User mgmt, approvals, analytics │ │ ├── AnalyticsController.java # Company analytics endpoints │ │ ├── ApplicationController.java # Apply, track, update applications │ │ ├── AuthController.java # Login, register, JWT issue │ │ ├── ChatController.java # AI Chatbot endpoint │ │ ├── DashboardController.java # Stats for dashboards │ │ ├── JobController.java # CRUD for jobs │ │ ├── NotificationController.java # Fetch, mark-read, clear notifs │ │ ├── ProfileController.java # View/edit user profile │ │ ├── RecommendationController.java # TF-IDF job recommendations │ │ └── RoundController.java # Create/update interview rounds │ │ │ ├── dto/ # Request/Response data contracts │ │ ├── AuthResponse.java # JWT token response │ │ ├── ChangePasswordRequest.java │ │ ├── ChatRequest.java │ │ ├── CreateRoundsRequest.java │ │ ├── ForgotPasswordRequest.java │ │ ├── JobRequest.java │ │ ├── LoginRequest.java │ │ ├── ParsedResume.java # Resume parsing result DTO │ │ ├── ProfileResponse.java │ │ ├── RegisterRequest.java │ │ ├── ResetPasswordRequest.java │ │ ├── RoundResponse.java │ │ ├── UpdateProfileRequest.java │ │ ├── UpdateRoundRequest.java │ │ └── UserResponse.java │ │ │ ├── entity/ │ │ ├── Application.java # Job application record │ │ ├── ApplicationStatus.java # PENDING, IN_PROGRESS, SELECTED, REJECTED │ │ ├── AuditLog.java # System audit trail │ │ ├── Job.java # Job posting entity │ │ ├── JobStatus.java # OPEN, CLOSED │ │ ├── Role.java # STUDENT, COMPANY, ADMIN │ │ ├── Round.java # Interview round entity │ │ ├── RoundStatus.java # PENDING, PASSED, FAILED │ │ └── User.java # Platform user entity │ │ │ ├── repository/ │ │ ├── ApplicationRepository.java │ │ ├── AuditLogRepository.java │ │ ├── JobRepository.java │ │ ├── RoundRepository.java │ │ └── UserRepository.java │ │ │ ├── security/ │ │ ├── JwtFilter.java # JWT validation on every request │ │ ├── JwtUtil.java # Token generation & parsing │ │ └── PasswordConfig.java # BCryptPasswordEncoder bean │ │ │ └── service/ │ ├── AdminService.java # Platform admin operations │ ├── AnalyticsService.java # @Cacheable analytics queries │ ├── ApplicationService.java # Application lifecycle management │ ├── AuthService.java # Register, login, JWT issue │ ├── ChatService.java # Gemini AI + intent detection │ ├── EmailService.java # @Async SMTP email dispatch │ ├── FileUploadService.java # Cloudinary file upload │ ├── JobService.java # Job CRUD + cache eviction │ ├── NotificationService.java # WebSocket + REST notification store │ ├── PasswordService.java # Forgot/reset/change password │ ├── ProfileService.java # Profile management │ ├── RateLimitService.java # Bucket4j token-bucket limiting │ ├── RecommendationService.java # TF-IDF job recommendation engine │ ├── ResumeParserService.java # PDFBox text + skill extraction │ └── RoundService.java # Sequential round pipeline │ └── pom.xml # Maven dependencies
+
+```text
+campus-placement-system/
+│
+├── frontend/
+│   ├── src/
+│   │   ├── components/
+│   │   ├── pages/
+│   │   ├── services/
+│   │   └── context/
+│   │
+│   └── package.json
+│
+├── src/main/java/
+│   ├── config/
+│   ├── controller/
+│   ├── dto/
+│   ├── entity/
+│   ├── repository/
+│   ├── security/
+│   └── service/
+│
+└── pom.xml
+```
 
 
 
