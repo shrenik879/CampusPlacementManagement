@@ -1,4 +1,4 @@
-﻿<h1 align="center">🎓 Campus Placement Management System</h1>
+<h1 align="center">🎓 Campus Placement Management System</h1>
 
 <p align="center">
   <img src="https://img.shields.io/badge/Java-21-orange?style=for-the-badge&logo=java" alt="Java 21" />
@@ -46,6 +46,7 @@ A professional, full-stack **Campus Placement Management System** designed to st
 - **AI Career Assistant:** Integrated with **Google Gemini AI** to provide context-aware chatbot guidance.
 - **Job Management:** Companies can post jobs, manage rounds, and update application statuses (Applied, Shortlisted, Selected).
 - **Application Tracking:** Students can track their application status and view interview schedules.
+- **Server-Side Pagination & Sorting:** All major listings (job postings, applicants, student applications) support server-side pagination and sorting using Spring Data's `Pageable`, enabling efficient management of large-scale data without performance degradation.
 - **Email Notifications:** Automatic **Gmail SMTP** notifications for job applications, round scheduling, and password resets.
 - **Performance Optimization:** Implemented **Redis** caching for faster dashboard metrics and data retrieval.
 - **API Documentation:** Fully documented with **Swagger UI / OpenAPI**.
