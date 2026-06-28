@@ -16,6 +16,20 @@
   <img src="https://img.shields.io/badge/License-MIT-blue?style=for-the-badge" />
 </p>
 
+<p align="center">
+  <a href="https://campus-placement-frontend-nu.vercel.app" target="_blank">
+    <img src="https://img.shields.io/badge/🌐 Live Frontend-Visit App-000000?style=for-the-badge&logo=vercel&logoColor=white" />
+  </a>
+  &nbsp;
+  <a href="http://3.208.20.63:8081/swagger-ui/index.html" target="_blank">
+    <img src="https://img.shields.io/badge/📖 Swagger UI-Explore APIs-85EA2D?style=for-the-badge&logo=swagger&logoColor=black" />
+  </a>
+  &nbsp;
+  <a href="http://3.208.20.63:8081/v3/api-docs" target="_blank">
+    <img src="https://img.shields.io/badge/📄 OpenAPI JSON-View Spec-FF9900?style=for-the-badge&logo=amazon-ec2&logoColor=white" />
+  </a>
+</p>
+
 ---
 
 ## 📑 Table of Contents
