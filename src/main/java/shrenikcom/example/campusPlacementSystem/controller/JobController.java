@@ -1,5 +1,8 @@
 package shrenikcom.example.campusPlacementSystem.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -15,10 +18,13 @@ import shrenikcom.example.campusPlacementSystem.service.JobService;
 @RestController
 @RequestMapping("/api/jobs")
 @RequiredArgsConstructor
+@Tag(name = "Jobs", description = "Job listings: search jobs (public), post jobs (COMPANY), close jobs (COMPANY).")
+@SecurityRequirement(name = "BearerAuth")
 public class JobController {
 
     private final JobService jobService;
 
+    @Operation(summary = "Search Jobs", description = "Search open jobs by title or status with pagination. Requires authentication.")
     // GET /api/jobs?title=&status=&page=0&size=5
     @GetMapping
     public ResponseEntity<Page<Job>> getJobs(
@@ -31,6 +37,7 @@ public class JobController {
         return ResponseEntity.ok(jobs);
     }
 
+    @Operation(summary = "Post Job", description = "Create a new job listing. COMPANY role required.")
     // POST /api/jobs  (COMPANY only)
     @PostMapping
     public ResponseEntity<Job> postJob(@RequestBody JobRequest request,
@@ -43,6 +50,7 @@ public class JobController {
         return ResponseEntity.status(HttpStatus.CREATED).body(job);
     }
 
+    @Operation(summary = "Close Job", description = "Close a job listing. COMPANY role required. Only the owning company can close their job.")
     // PUT /api/jobs/{id}/close  (COMPANY only)
     @PutMapping("/{id}/close")
     public ResponseEntity<Job> closeJob(@PathVariable Long id, HttpServletRequest request) {

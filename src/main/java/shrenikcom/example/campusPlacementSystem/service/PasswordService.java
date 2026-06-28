@@ -2,6 +2,7 @@ package shrenikcom.example.campusPlacementSystem.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import shrenikcom.example.campusPlacementSystem.dto.ChangePasswordRequest;
@@ -16,6 +17,14 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Slf4j
 public class PasswordService {
+
+    /**
+     * Frontend base URL used to construct password reset links.
+     * Set FRONTEND_URL env var on EC2 to your frontend address.
+     * Falls back to http://localhost:5173 for local development.
+     */
+    @Value("${frontend.url}")
+    private String frontendUrl;
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -57,8 +66,8 @@ public class PasswordService {
         user.setTokenExpiry(LocalDateTime.now().plusMinutes(15));
         userRepository.save(user);
 
-        // Build reset link
-        String resetLink = "http://localhost:5173/reset-password?token=" + token;
+        // Build reset link using the configured frontend URL (set via FRONTEND_URL env var)
+        String resetLink = frontendUrl + "/reset-password?token=" + token;
 
         // Send email with reset link
         emailService.sendPasswordResetEmail(user.getEmail(), user.getName(), resetLink);

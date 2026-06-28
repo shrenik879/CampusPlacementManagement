@@ -1,368 +1,250 @@
-# 🎓 Campus Placement Management System
-A production-grade, full-stack web application built to orchestrate the complete university placement lifecycle. It connects **Students**, **Companies**, and **Administrators** on a single platform — handling job postings, multi-round application tracking, AI-powered assistance, automated resume parsing, and real-time WebSocket notifications.
-[![Tech Stack](https://img.shields.io/badge/Backend-Spring%20Boot%20%7C%20Java%2021-green)](#)
-[![Tech Stack](https://img.shields.io/badge/Frontend-React%2019%20%7C%20Vite-blue)](#)
-[![Tech Stack](https://img.shields.io/badge/Cache-Redis%20via%20Docker-red)](#)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-🔗 **Source Code:** [GitHub Repository](https://github.com/shrenik879/CampusPlacementManagement)
----
-## 🏗️ System Architecture
+﻿<h1 align="center">🎓 Campus Placement Management System</h1>
 
-```mermaid
-flowchart TD
+<p align="center">
+  <img src="https://img.shields.io/badge/Java-21-orange?style=for-the-badge&logo=java" alt="Java 21" />
+  <img src="https://img.shields.io/badge/Spring_Boot-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white" alt="Spring Boot" />
+  <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React" />
+  <img src="https://img.shields.io/badge/MySQL-005C84?style=for-the-badge&logo=mysql&logoColor=white" alt="MySQL" />
+  <img src="https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white" alt="Redis" />
+  <img src="https://img.shields.io/badge/AWS_EC2-FF9900?style=for-the-badge&logo=amazon-ec2&logoColor=white" alt="AWS EC2" />
+  <img src="https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Vercel" />
+  <img src="https://img.shields.io/badge/Swagger-85EA2D?style=for-the-badge&logo=swagger&logoColor=black" alt="Swagger" />
+  <img src="https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge" alt="License" />
+</p>
 
-A[Client Tier<br/>React + Vite] -->|HTTPS / WebSocket| B[Security Tier]
-
-B --> C[JWT Authentication]
-B --> D[Bucket4j Rate Limiting]
-B --> E[CORS Configuration]
-
-C --> F[Spring Boot Application Layer]
-D --> F
-E --> F
-
-F --> G[Business Logic]
-F --> H[Gemini AI Chatbot]
-F --> I[Resume Parser]
-F --> J[Recommendation Engine]
-F --> K[Async Email Service]
-
-F --> L[(Redis Cache)]
-F --> M[(MySQL Database)]
-
-L --> N[Analytics Cache]
-L --> O[Platform Stats Cache]
-
-M --> P[Users]
-M --> Q[Jobs]
-M --> R[Applications]
-M --> S[Interview Rounds]
-M --> T[Audit Logs]
-```
-
+A professional, full-stack **Campus Placement Management System** designed to streamline the recruitment process for Students, Companies, Placement Officers, and Administrators.
 
 ---
-## 🌟 Features by Role
-### 👨‍🎓 Student Portal
-- **Dashboard** — View profile, active applications, and personalized job recommendations.
-- **Job Search & Apply** — Browse open jobs and submit applications with one click.
-- **My Applications** — Track all applications and statuses (Pending / In-Progress / Selected / Rejected).
-- **Resume Upload** — Upload PDF resume; system auto-parses skills, email, and phone using **Apache PDFBox**.
-- **Real-Time Notifications** — Instant WebSocket alerts when application status changes or rounds are scheduled.
-### 🏢 Company Portal
-- **Company Dashboard** — Post jobs, manage listings (Open/Closed), and view all applicants.
-- **Applicants Board** — Review all candidates who applied, update their statuses.
-- **Interview Rounds** — Create sequential interview rounds (Aptitude → Technical → HR). System automatically marks application SELECTED when all rounds PASSED, or REJECTED on any FAILED round.
-- **Analytics Dashboard** — View real-time hiring funnel: Applied → Shortlisted → Selected, with per-round conversion rates — cached via **Redis** for speed.
-### 🛡️ Admin Dashboard
-- **User Management** — View, approve, block, or delete Students and Company accounts.
-- **Company Approval Workflow** — Companies must be approved by Admin before accessing the platform.
-- **Platform Analytics** — Global stats: total users, jobs, applications, placement rates — served from Redis cache.
-- **Audit Log** — Tracks all critical system actions (user creation, deletions, approvals) for accountability.
-- **Broadcast Notifications** — Push announcements to all platform users in real time.
+
+## 📑 Table of Contents
+
+- [Features](#-features)
+- [Tech Stack](#-tech-stack)
+- [System Architecture](#-system-architecture)
+- [Deployment Architecture](#-deployment-architecture)
+- [Backend Layered Architecture](#-backend-layered-architecture)
+- [ER Diagram](#-er-diagram)
+- [Workflows](#-workflows)
+  - [JWT Authentication Flow](#jwt-authentication-flow)
+  - [Job Application Workflow](#job-application-workflow)
+  - [Resume Upload & AI Assistant Workflow](#resume-upload--ai-assistant-workflow)
+- [API Modules](#-api-modules)
+- [Security Features](#-security-features)
+- [Live Demo](#-live-demo)
+- [Installation](#-installation)
+- [Deployment Guide](#-deployment-guide)
+- [Future Enhancements](#-future-enhancements)
+- [License](#-license)
+
 ---
-## ⚡ Technical Deep-Dive
-### 🤖 AI-Powered Chatbot (Gemini API)
-- Integrates **Google Gemini API** (auto-discovers the best available model via `/v1beta/models` endpoint at startup).
-- Role-aware intent detection: Students get application status, Companies get applicant summaries, Admins get platform stats.
-- **Hybrid approach**: rule-based direct answers for simple queries; Gemini API for complex, open-ended questions.
-- Built-in **exponential backoff retry** (3 attempts) for Gemini 429 rate-limit errors.
-### 📄 Intelligent Resume Parser (Apache PDFBox)
-- Extracts raw text from uploaded PDF resumes using `PDFTextStripper`.
-- Matches against a curated dictionary of **60+ technical skills** (languages, frameworks, databases, DevOps, ML tools).
-- Extracts **email** and **phone** using regex patterns.
-- Detects education keywords (B.Tech, MCA, CGPA, etc.).
-- Returns a structured `ParsedResume` DTO with all extracted data.
-### 🎯 Job Recommendation Engine (TF-IDF Inspired)
-- Custom **TF-IDF weighted scoring algorithm** (no external ML library required).
-- **Scoring weights**: Skills = 3.0x, Job Title = 2.0x, Description = 1.0x.
-- **Experience-level matching**: Detects junior/senior keywords and applies 1.2x boost or 0.7x penalty accordingly.
-- **Recency bonus**: Jobs posted within 7 days receive a +1.5 score bonus.
-- Returns top 10 recommended jobs ranked by similarity score with match percentage.
-### 📡 Real-Time Notification System (WebSockets)
-- Dual-delivery architecture:
-  - **WebSocket push** (STOMP over SockJS) for online users — instant delivery.
-  - **In-memory REST fallback** for offline users — notifications stored and delivered on next poll.
-- Notification types:
-  - `status_update` — Application selected/rejected.
-  - `round_update` — Individual round passed/failed.
-  - `new_job` — Broadcast to all students when a company posts a new job.
-  - `broadcast` — Admin announcements to all users.
-- Stores up to **50 notifications per user** with read/unread tracking.
-### 🔄 Multi-Round Interview Pipeline
-- Companies create sequential rounds with custom names and scheduled timestamps.
-- **Enforces sequential order**: A round cannot be updated unless all previous rounds are PASSED.
-- Automatically transitions application status: `PENDING → IN_PROGRESS → SELECTED / REJECTED`.
-- Sends both **email notifications** and **WebSocket push** on every round status change.
-### 🔐 Password & Security System
-- **Forgot Password**: Generates a secure UUID token with **15-minute expiry**, sends reset link via email.
-- **One-time token**: Token is cleared from the database immediately after use.
-- **Change Password**: Validates current password, prevents reuse of the same password.
-- All passwords hashed with **BCryptPasswordEncoder**.
+
+## ✨ Features
+
+- **Role-Based Access Control (RBAC):** Distinct portals for Students, Companies, Placement Officers, and Admins.
+- **JWT Authentication:** Stateless, secure API requests.
+- **Resume Parsing & Storage:** Upload PDF resumes directly to **Cloudinary**, with automated skill extraction.
+- **AI Career Assistant:** Integrated with **Google Gemini AI** to provide context-aware chatbot guidance.
+- **Job Management:** Companies can post jobs, manage rounds, and update application statuses (Applied, Shortlisted, Selected).
+- **Application Tracking:** Students can track their application status and view interview schedules.
+- **Email Notifications:** Automatic **Gmail SMTP** notifications for job applications, round scheduling, and password resets.
+- **Performance Optimization:** Implemented **Redis** caching for faster dashboard metrics and data retrieval.
+- **API Documentation:** Fully documented with **Swagger UI / OpenAPI**.
+
 ---
-## 🚀 Performance Optimizations
-| Optimization | Technology | Details |
-|:---|:---|:---|
-| **Redis Caching** | Spring Cache + Redis (Docker) | `analytics` and `platformStats` cached with 10-min TTL and `campus:cache:` namespace |
-| **Cache Eviction** | `@CacheEvict` | Auto-invalidated on job creation, deletion, user changes — guarantees data consistency |
-| **Cache Error Handling** | Custom `RedisCacheErrorHandler` | Redis failures are silently logged — never propagate as HTTP 500 errors |
-| **AOP Cache Logging** | Spring AOP Aspect | Intercepts all `@Cacheable` methods and logs HIT/MISS for cache ratio monitoring |
-| **Rate Limiting** | Bucket4j (Token Bucket) | Per-user/IP rate limiting with `ConcurrentHashMap`; auto-cleared every 10 mins |
-| **Async Email** | Spring `@Async` | All email dispatch runs in background threads — zero API blocking |
-| **Pagination** | Spring Data JPA | Server-side pagination + dynamic sorting on all large list endpoints |
-| **Gemini Retry** | Exponential Backoff | 3-attempt retry with 1s → 2s → 4s delays on API rate limit errors |
----
-## 🔐 Security Architecture
-| Layer | Implementation |
-|:---|:---|
-| **Authentication** | Stateless JWT (jjwt 0.11.5) — token validated on every request |
-| **Password Hashing** | BCryptPasswordEncoder |
-| **Authorization** | Spring Security Filter Chain with Role-based endpoint protection |
-| **Rate Limiting** | Bucket4j Token-Bucket per user/IP |
-| **Company Gating** | Companies cannot access platform until Admin approves their account |
-| **Audit Trail** | `AuditLog` entity records all critical state changes |
-| **Token Expiry** | Password reset tokens expire in 15 minutes and are one-time use |
----
-## 🛠️ Full Technology Stack
-### Backend
-| Category | Technology |
-|:---|:---|
-| Core Framework | Spring Boot 4.0.5, Java 21 |
-| REST API | Spring WebMVC |
-| Security | Spring Security, JWT (jjwt 0.11.5), BCrypt |
-| Database ORM | Spring Data JPA, Hibernate |
-| Database | MySQL |
-| Caching | Redis (Docker), Spring Cache (`@Cacheable`, `@CacheEvict`) |
-| Rate Limiting | Bucket4j 8.10.1 (Token-Bucket) |
-| Async Processing | Spring `@Async` |
-| File Storage | Cloudinary API |
-| Resume Parsing | Apache PDFBox 2.0.31 |
-| Email | Spring Boot Mail (SMTP) |
-| Real-time | Spring WebSocket, STOMP |
-| AI Chatbot | Google Gemini API (REST) |
-| Utilities | Lombok |
+
+## 🛠 Tech Stack
+
 ### Frontend
-| Category | Technology |
-|:---|:---|
-| Framework | React 19, Vite 8 |
-| Styling | Tailwind CSS 4 |
-| Routing | React Router DOM 7 |
-| HTTP Client | Axios |
-| WebSockets | SockJS-client, @stomp/stompjs |
-| Notifications | react-hot-toast |
-| Icons | lucide-react |
----
-## 🔄 Placement Workflow
+- **React.js** (Vite)
+- **Tailwind CSS**
+- **React Router DOM**
+- **Axios**
 
-```mermaid
-flowchart LR
+### Backend
+- **Java 21**
+- **Spring Boot 3**
+- **Spring Security (JWT)**
+- **Spring Data JPA (Hibernate)**
 
-A[Student Registers]
---> B[Upload Resume]
+### Database & Caching
+- **MySQL 8**
+- **Redis**
 
-B --> C[Apply for Job]
-
-C --> D[Company Reviews Application]
-
-D --> E[Aptitude Round]
-
-E --> F[Technical Round]
-
-F --> G[HR Round]
-
-G --> H[Selected]
-
-E --> X[Failed]
-F --> X
-G --> X
-
-X[Rejected]
-```
-## 🔐 Authentication Flow
-
-```mermaid
-sequenceDiagram
-
-participant User
-participant Frontend
-participant Backend
-participant Database
-
-User->>Frontend: Login
-Frontend->>Backend: Credentials
-
-Backend->>Database: Validate User
-
-Database-->>Backend: User Data
-
-Backend-->>Frontend: JWT Token
-
-Frontend->>Backend: API Request + JWT
-
-Backend-->>Frontend: Authorized Response
-```
-## 📄 Resume Parsing Flow
-
-```mermaid
-flowchart LR
-
-A[PDF Resume]
---> B[Apache PDFBox]
-
-B --> C[Extract Text]
-
-C --> D[Skill Detection]
-
-C --> E[Email Detection]
-
-C --> F[Phone Detection]
-
-C --> G[Education Detection]
-
-D --> H[ParsedResume DTO]
-E --> H
-F --> H
-G --> H
-```
-## 📡 Real-Time Notification System
-
-```mermaid
-flowchart TD
-
-A[Application Status Change]
-
-A --> B[Notification Service]
-
-B --> C[WebSocket STOMP]
-
-B --> D[REST Fallback Store]
-
-C --> E[Online User]
-
-D --> F[Offline User]
-
-F --> G[Delivered on Next Poll]
-```
-## 🎯 Job Recommendation Engine
-
-```mermaid
-flowchart LR
-
-A[Student Skills]
---> D[Scoring Engine]
-
-B[Job Title]
---> D
-
-C[Job Description]
---> D
-
-D --> E[TF-IDF Weighted Score]
-
-E --> F[Recency Bonus]
-
-F --> G[Rank Jobs]
-
-G --> H[Top 10 Recommendations]
-```
-## 📂 Complete Project Structure
-
-```text
-campus-placement-system/
-│
-├── frontend/
-│   ├── src/
-│   │   ├── components/
-│   │   ├── pages/
-│   │   ├── services/
-│   │   └── context/
-│   │
-│   └── package.json
-│
-├── src/main/java/
-│   ├── config/
-│   ├── controller/
-│   ├── dto/
-│   ├── entity/
-│   ├── repository/
-│   ├── security/
-│   └── service/
-│
-└── pom.xml
-```
-
-
+### External Cloud Services
+- **AWS EC2** (Backend & DB Hosting)
+- **Vercel** (Frontend Hosting)
+- **Cloudinary** (Secure File Storage)
+- **Google Gemini AI API** (Generative AI Chat)
+- **Gmail SMTP** (Email Delivery)
 
 ---
-## ⚙️ Local Setup & Installation
+
+## 🏛 System Architecture
+
+![System Architecture](docs/images/system-architecture.png)
+
+Our system utilizes a classic **Three-Tier Architecture** tailored for the cloud:
+1. **Presentation Layer:** Hosted on Vercel, providing a responsive React interface.
+2. **Business Logic Layer:** Hosted on AWS EC2, containing the Spring Boot services, security logic, and API controllers.
+3. **Data Layer:** MySQL and Redis hosted alongside the backend on EC2 for ultra-low latency data access. External APIs handle specialized tasks.
+
+---
+
+## ☁️ Deployment Architecture
+
+![Deployment Diagram](docs/images/deployment-diagram.png)
+
+- **Vercel:** Serves the built frontend static assets via CDN. Proxies API requests to bypass Mixed Content restrictions.
+- **AWS EC2 (Ubuntu):** Runs the Spring Boot backend as a systemd service on port 8081. Hosts MySQL (3306) and Redis (6379) internally.
+- **Cloud Services:** The EC2 backend communicates securely with Cloudinary, Gemini, and Google SMTP over the public internet (HTTPS/TLS).
+
+---
+
+## 🏗 Backend Layered Architecture
+
+![Backend Layered Architecture](docs/images/backend-layered-architecture.png)
+
+- **Controllers:** Expose RESTful endpoints.
+- **Security:** Intercepts requests, validates JWTs, and enforces Role-Based access.
+- **Services:** Contains the core business logic and communicates with external APIs (Cloudinary, Gemini) and Cache (Redis).
+- **Repositories:** Manages database interactions via Spring Data JPA.
+
+---
+
+## 🗄 ER Diagram
+
+![ER Diagram](docs/images/er-diagram.png)
+
+**Key Relationships:**
+- **User (COMPANY) → Job:** One-to-Many
+- **User (STUDENT) → Application:** One-to-Many
+- **Job → Application:** One-to-Many
+- **Application → Round:** One-to-Many
+
+---
+
+## 🔄 Workflows
+
+### JWT Authentication Flow
+![JWT Authentication Flow](docs/images/jwt-authentication-flow.png)
+*Illustrates the process of credential validation, BCrypt password checking, token generation, and subsequent request interception by the JwtFilter.*
+
+### Job Application Workflow
+![Job Application Workflow](docs/images/job-application-workflow.png)
+*Traces the complete lifecycle from a student clicking 'Apply', checking duplicate rules, auto-generating interview rounds upon selection, and dispatching async email notifications.*
+
+### Resume Upload & AI Assistant Workflow
+![Resume Upload & AI Workflow](docs/images/resume-upload-ai-workflow.png)
+*Demonstrates the multipart upload sequence to Cloudinary (bypassing local storage) and the context-aware prompt generation for Google Gemini AI.*
+
+---
+
+## 🌐 API Modules
+
+Fully documented via **Swagger / OpenAPI**:
+- **Auth (/api/auth):** Registration, Login, Forgot Password.
+- **Users (/api/users):** Profile management, role fetching.
+- **Jobs (/api/jobs):** CRUD operations for job postings, search, and filtering.
+- **Applications (/api/applications):** Job applications, status updates, resume uploads, and parsing.
+- **Rounds (/api/rounds):** Interview scheduling, feedback, and scoring.
+- **Analytics (/api/dashboard):** Real-time statistics using Redis cache.
+- **AI Assistant (/api/chat):** Context-aware career chatbot queries.
+- **Admin (/api/admin):** User approvals, blocking, and audit logs.
+- **Notifications (/api/notifications):** WebSocket messaging endpoints.
+
+---
+
+## 🔒 Security Features
+
+- **Stateless Authentication:** JSON Web Tokens (JWT).
+- **Password Protection:** BCrypt hashing algorithm.
+- **RBAC:** @PreAuthorize and manual role checks ensuring companies cannot access student resources and vice versa.
+- **CORS Configuration:** Explicitly configured origin whitelists.
+- **Input Validation:** Hibernate Validator (@Valid, @NotBlank, etc.) preventing malformed requests.
+
+---
+
+## 🚀 Live Demo
+
+- **Frontend (Vercel):** [https://campus-placement-frontend-nu.vercel.app](https://campus-placement-frontend-nu.vercel.app)
+- **Backend API:** http://3.208.20.63:8081
+- **Swagger Documentation:** [http://3.208.20.63:8081/swagger-ui/index.html](http://3.208.20.63:8081/swagger-ui/index.html)
+
+---
+
+## ⚙️ Installation & Setup
+
 ### Prerequisites
-- **JDK 21+**
-- **Node.js** (v18+) and **npm**
-- **MySQL Server** running locally
-- **Docker** (for Redis)
-- **Cloudinary Account** (free tier works)
-- **Google Gemini API Key** (free at [Google AI Studio](https://aistudio.google.com/))
-### Step 1 — Start Redis via Docker
-```bash
-docker run --name redis -p 6379:6379 -d redis
-Step 2 — Create MySQL Database
-sql
+- Node.js (v18+)
+- Java 21
+- Maven
+- MySQL 8
+- Redis Server
 
+### 1. Backend Setup
+`ash
+git clone https://github.com/yourusername/CampusPlacementManagement.git
+cd CampusPlacementManagement
 
-CREATE DATABASE campus_placement;
-Step 3 — Configure Backend
-Update src/main/resources/application.properties:
+# Set Environment Variables (see below)
+# Build and Run
+mvn clean install
+mvn spring-boot:run
+`
 
-properties
-
-
-spring.datasource.url=jdbc:mysql://localhost:3306/campus_placement
-spring.datasource.username=your_mysql_user
-spring.datasource.password=your_mysql_password
-spring.jpa.hibernate.ddl-auto=update
-jwt.secret=your_super_secret_jwt_key
-cloudinary.cloud-name=your_cloudinary_cloud_name
-cloudinary.api-key=your_cloudinary_api_key
-cloudinary.api-secret=your_cloudinary_api_secret
-spring.mail.host=smtp.gmail.com
-spring.mail.port=587
-spring.mail.username=your_email@gmail.com
-spring.mail.password=your_app_password
-gemini.api.key=your_gemini_api_key
-spring.data.redis.host=localhost
-spring.data.redis.port=6379
-Step 4 — Run Backend
-bash
-
-
-./mvnw spring-boot:run
-Backend starts at http://localhost:8080
-
-Step 5 — Run Frontend
-bash
-
-
+### 2. Frontend Setup
+`ash
 cd frontend
 npm install
 npm run dev
-Frontend starts at http://localhost:5173
+`
 
-🔌 Key API Endpoints
-Method	Endpoint	Description	Auth
-POST	/api/auth/register	Register new user	❌
-POST	/api/auth/login	Login + receive JWT	❌
-GET	/api/jobs	List all open jobs (paginated)	✅
-POST	/api/jobs	Post a new job	Company
-POST	/api/applications/apply/{jobId}	Apply to a job	Student
-GET	/api/applications/my	Get my applications	Student
-POST	/api/rounds/create	Create interview rounds	Company
-PUT	/api/rounds/update	Update round status	Company
-GET	/api/analytics/company	Company analytics (Redis cached)	Company
-POST	/api/chat	AI chatbot query	✅
-GET	/api/recommendations	TF-IDF job recommendations	Student
-POST	/api/profile/upload-resume	Upload + parse PDF resume	Student
-GET	/api/notifications	Get user notifications	✅
-GET	/api/admin/users	List all users	Admin
-PUT	/api/admin/approve/{id}	Approve company account	Admin
-📝 License
-This project is licensed under the MIT License.
+---
+
+## 🔑 Environment Variables
+
+Create a .env file for the Backend, or set these in your OS:
+
+| Variable | Description |
+|---|---|
+| DB_USERNAME | MySQL database username |
+| DB_PASSWORD | MySQL database password |
+| JWT_SECRET | Secret key for signing JWTs (must be long) |
+| CLOUDINARY_CLOUD_NAME | Your Cloudinary Cloud Name |
+| CLOUDINARY_API_KEY | Your Cloudinary API Key |
+| CLOUDINARY_API_SECRET | Your Cloudinary API Secret |
+| GEMINI_API_KEY | Google Gemini API Key |
+| MAIL_USERNAME | Gmail address for SMTP |
+| MAIL_PASSWORD | Gmail App Password |
+| FRONTEND_URL | e.g., http://localhost:5173 or Vercel URL |
+
+---
+
+## 🚢 Deployment Guide
+
+- **Frontend:** Pushed directly to Vercel via GitHub integration. A ercel.json file is included to handle React SPA routing and proxying /api/* to the EC2 backend to resolve Mixed Content issues.
+- **Backend:** 
+  1. Built via mvn clean package.
+  2. JAR transferred to AWS EC2 instance.
+  3. Configured to run infinitely in the background using a systemd service (/etc/systemd/system/springboot-app.service).
+
+---
+
+## 🔮 Future Enhancements
+
+- Integrate WebRTC for in-platform video interviews.
+- Implement an automated Coding Assessment environment.
+- Add OAuth2 login (Google/GitHub/LinkedIn).
+- Secure the EC2 backend with an NGINX reverse proxy and Let's Encrypt SSL.
+
+---
+
+## 👤 Author
+
+**Shrenik Kondekar**
+
+---
+
+## 📄 License
+
+This project is licensed under the [MIT License](LICENSE).

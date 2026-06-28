@@ -1,5 +1,7 @@
 package shrenikcom.example.campusPlacementSystem.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,12 +22,14 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/dashboard")
 @RequiredArgsConstructor
+@Tag(name = "Dashboard", description = "Public statistics endpoint. No authentication required.")
 public class DashboardController {
 
     private final UserRepository        userRepository;
     private final JobRepository         jobRepository;
     private final ApplicationRepository applicationRepository;
 
+    @Operation(summary = "Get Platform Stats", description = "Returns counts of companies, students, jobs, and placements. Public endpoint.")
     @GetMapping("/stats")
     public ResponseEntity<Map<String, Long>> getStats() {
         long companies  = userRepository.countByRole(Role.COMPANY);

@@ -1,5 +1,8 @@
 package shrenikcom.example.campusPlacementSystem.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +16,8 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/chat")
 @RequiredArgsConstructor
+@Tag(name = "AI Chat", description = "Gemini AI-powered chatbot for placement queries. Requires authentication.")
+@SecurityRequirement(name = "BearerAuth")
 public class ChatController {
 
     private final ChatService chatService;
@@ -23,6 +28,7 @@ public class ChatController {
      * Header: Authorization: Bearer <JWT>
      * Returns: { "reply": "..." }
      */
+    @Operation(summary = "Chat with AI", description = "Send a message to the Gemini AI assistant. Returns a context-aware reply based on your role and data.")
     @PostMapping
     public ResponseEntity<Map<String, String>> chat(
             @RequestBody ChatRequest request,

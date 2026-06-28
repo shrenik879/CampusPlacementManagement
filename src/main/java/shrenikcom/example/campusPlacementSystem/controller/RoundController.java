@@ -1,5 +1,8 @@
 package shrenikcom.example.campusPlacementSystem.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -15,6 +18,8 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/rounds")
 @RequiredArgsConstructor
+@Tag(name = "Rounds", description = "Recruitment rounds: create rounds per application, update pass/fail status with feedback.")
+@SecurityRequirement(name = "BearerAuth")
 public class RoundController {
 
     private final RoundService roundService;
@@ -24,6 +29,7 @@ public class RoundController {
      * Create recruitment rounds for an application.
      * Body: { applicationId, rounds: [{ roundName, scheduledAt? }] }
      */
+    @Operation(summary = "Create Rounds", description = "Create recruitment rounds for a job application. COMPANY role required.")
     @PostMapping("/create")
     public ResponseEntity<List<RoundResponse>> createRounds(@Valid @RequestBody CreateRoundsRequest request) {
         List<RoundResponse> rounds = roundService.createRounds(request);
@@ -34,6 +40,7 @@ public class RoundController {
      * GET /api/rounds/application/{applicationId}
      * Get all rounds for an application, ordered by roundOrder.
      */
+    @Operation(summary = "Get Rounds", description = "Get all recruitment rounds for an application, ordered by round number.")
     @GetMapping("/application/{applicationId}")
     public ResponseEntity<List<RoundResponse>> getRounds(@PathVariable Long applicationId) {
         List<RoundResponse> rounds = roundService.getRounds(applicationId);
@@ -45,6 +52,7 @@ public class RoundController {
      * Update a round's status (PASSED/FAILED) with optional feedback and score.
      * Auto-determines application's final status.
      */
+    @Operation(summary = "Update Round", description = "Update a round's result (PASSED/FAILED) with optional feedback and score. Auto-determines final application status.")
     @PostMapping("/update")
     public ResponseEntity<RoundResponse> updateRound(@Valid @RequestBody UpdateRoundRequest request) {
         RoundResponse round = roundService.updateRound(request);

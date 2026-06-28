@@ -1,5 +1,8 @@
 package shrenikcom.example.campusPlacementSystem.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -17,10 +20,13 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/analytics")
 @RequiredArgsConstructor
+@Tag(name = "Analytics", description = "Company analytics: application funnels, conversion rates, round statistics.")
+@SecurityRequirement(name = "BearerAuth")
 public class AnalyticsController {
 
     private final AnalyticsService analyticsService;
 
+    @Operation(summary = "Get Company Analytics", description = "Returns full application funnel analytics for the authenticated company.")
     @GetMapping("/company")
     public ResponseEntity<Map<String, Object>> getCompanyAnalytics(HttpServletRequest request) {
         User user = (User) request.getAttribute("user");

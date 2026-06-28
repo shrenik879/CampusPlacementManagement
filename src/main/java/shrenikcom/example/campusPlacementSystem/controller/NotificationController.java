@@ -1,5 +1,8 @@
 package shrenikcom.example.campusPlacementSystem.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +16,8 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/notifications")
 @RequiredArgsConstructor
+@Tag(name = "Notifications", description = "In-app notifications: fetch, mark as read, clear.")
+@SecurityRequirement(name = "BearerAuth")
 public class NotificationController {
 
     private final NotificationService notificationService;
@@ -22,6 +27,7 @@ public class NotificationController {
      * Returns all notifications for the authenticated user.
      * Frontend polls this every few seconds.
      */
+    @Operation(summary = "Get Notifications", description = "Returns all unread notifications for the authenticated user.")
     @GetMapping
     public ResponseEntity<List<Map<String, Object>>> getNotifications(HttpServletRequest request) {
         User user = (User) request.getAttribute("user");
@@ -37,6 +43,7 @@ public class NotificationController {
      * PUT /api/notifications/read
      * Marks all notifications as read.
      */
+    @Operation(summary = "Mark All Read", description = "Mark all notifications as read for the authenticated user.")
     @PutMapping("/read")
     public ResponseEntity<String> markAllRead(HttpServletRequest request) {
         User user = (User) request.getAttribute("user");
@@ -51,6 +58,7 @@ public class NotificationController {
      * DELETE /api/notifications
      * Clear all notifications.
      */
+    @Operation(summary = "Clear Notifications", description = "Delete all notifications for the authenticated user.")
     @DeleteMapping
     public ResponseEntity<String> clearNotifications(HttpServletRequest request) {
         User user = (User) request.getAttribute("user");

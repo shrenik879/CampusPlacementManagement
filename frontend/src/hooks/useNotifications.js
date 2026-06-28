@@ -77,7 +77,7 @@ export default function useNotifications(enabled = true) {
       client = new Client({
         // SockJS factory — REQUIRED when backend uses .withSockJS()
         webSocketFactory: () => new SockJS(
-          `http://localhost:8081/ws?token=${encodeURIComponent(token)}`
+          `${import.meta.env.VITE_API_URL || ''}/ws?token=${encodeURIComponent(token)}`
         ),
         reconnectDelay: RECONNECT_DELAY_MS,
         onConnect: () => {

@@ -1,5 +1,8 @@
 package shrenikcom.example.campusPlacementSystem.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,16 +22,20 @@ import shrenikcom.example.campusPlacementSystem.service.ProfileService;
 @RestController
 @RequestMapping("/api/profile")
 @RequiredArgsConstructor
+@Tag(name = "Profile", description = "User profile management: view and update name, skills, and role-specific stats.")
+@SecurityRequirement(name = "BearerAuth")
 public class ProfileController {
 
     private final ProfileService profileService;
 
+    @Operation(summary = "Get Profile", description = "Returns the authenticated user's profile including role-specific statistics.")
     @GetMapping
     public ResponseEntity<ProfileResponse> getProfile(HttpServletRequest request) {
         User user = getUser(request);
         return ResponseEntity.ok(profileService.getProfile(user));
     }
 
+    @Operation(summary = "Update Profile", description = "Update name or skills for the authenticated user.")
     @PutMapping("/update")
     public ResponseEntity<ProfileResponse> updateProfile(
             HttpServletRequest request,

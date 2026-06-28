@@ -1,5 +1,8 @@
 package shrenikcom.example.campusPlacementSystem.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -23,6 +26,8 @@ import java.util.HashMap;
 @RestController
 @RequestMapping("/api/applications")
 @RequiredArgsConstructor
+@Tag(name = "Applications", description = "Job applications: apply, track status, upload/download resumes, parse resume, update skills.")
+@SecurityRequirement(name = "BearerAuth")
 public class ApplicationController {
 
     private final ApplicationService applicationService;
@@ -30,6 +35,7 @@ public class ApplicationController {
     private final FileUploadService fileUploadService;
     private final ResumeParserService resumeParserService;
 
+    @Operation(summary = "Apply for Job", description = "Student applies for a specific job by job ID.")
     @PostMapping("/apply/{jobId}")
     public String applyJob(@PathVariable Long jobId,
                            HttpServletRequest request) {
@@ -47,6 +53,7 @@ public class ApplicationController {
         return applicationService.applyJob(jobId, user.getId());
     }
 
+    @Operation(summary = "Get Applicants for Job", description = "Returns a list of all students who applied to a specific job. COMPANY role required.")
     @GetMapping("/job/{jobId}")
     public List<Map<String, Object>> getApplicants(@PathVariable Long jobId,
                                            HttpServletRequest request) {
@@ -68,6 +75,7 @@ public class ApplicationController {
      * GET /api/applications/job/{jobId}/paged?status=&page=0&size=10
      * Paginated applicants for a specific job.
      */
+    @Operation(summary = "Get Applicants Paged", description = "Returns a paginated list of applicants for a specific job with optional status filter. COMPANY role required.")
     @GetMapping("/job/{jobId}/paged")
     public ResponseEntity<Page<Map<String, Object>>> getApplicantsPaged(
             @PathVariable Long jobId,
@@ -83,6 +91,7 @@ public class ApplicationController {
         return ResponseEntity.ok(applicationService.getApplicantsPaged(jobId, status, page, size));
     }
 
+    @Operation(summary = "Update Application Status", description = "Update the status of a job application (e.g., SHORTLISTED, REJECTED, PLACED). COMPANY role required.")
     @PutMapping("/status/{applicationId}")
     public String updateStatus(
             @PathVariable Long applicationId,
@@ -99,6 +108,7 @@ public class ApplicationController {
         return applicationService.updateStatus(applicationId, status);
     }
 
+    @Operation(summary = "Get My Applications", description = "Returns all job applications submitted by the authenticated student.")
     @GetMapping("/my")
     public List<Map<String, Object>> getMyApplications(HttpServletRequest request) {
         User user = (User) request.getAttribute("user");
@@ -115,6 +125,7 @@ public class ApplicationController {
      * GET /api/applications/my/paged?status=&page=0&size=10
      * Paginated student applications with optional status filter.
      */
+    @Operation(summary = "Get My Applications Paged", description = "Returns a paginated list of the authenticated student's applications with optional status filter.")
     @GetMapping("/my/paged")
     public ResponseEntity<Page<Map<String, Object>>> getMyApplicationsPaged(
             @RequestParam(required = false) String status,
@@ -129,6 +140,7 @@ public class ApplicationController {
         return ResponseEntity.ok(applicationService.getMyApplicationsPaged(user.getId(), status, page, size));
     }
 
+    @Operation(summary = "Upload Resume", description = "Upload a PDF resume (max 10MB). Automatically parses and extracts skills. Stores in Cloudinary.")
     @PostMapping("/upload-resume")
     public ResponseEntity<Map<String, String>> uploadResume(@RequestParam("file") MultipartFile file,
                                HttpServletRequest request) {
@@ -179,6 +191,7 @@ public class ApplicationController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "Download My Resume", description = "Download the authenticated student's resume PDF from Cloudinary.")
     @GetMapping("/download-resume")
     public ResponseEntity<byte[]> downloadResume(HttpServletRequest request) {
 
@@ -201,6 +214,7 @@ public class ApplicationController {
                 .header("Content-Disposition", "inline; filename=\"resume.pdf\"")
                 .body(pdfBytes);
     }
+    @Operation(summary = "Download Resume (Admin/Company)", description = "Download any student's resume by Cloudinary public ID. Accessible by COMPANY and ADMIN roles.")
     @GetMapping("/download-resume/admin")
     public ResponseEntity<byte[]> downloadResumeAdmin(
             @RequestParam String publicId, 
@@ -230,6 +244,7 @@ public class ApplicationController {
      * PUT /api/applications/skills
      * Lets a student save/update their comma-separated skills string.
      */
+    @Operation(summary = "Update Skills", description = "Saves or updates the authenticated student's comma-separated skills list (e.g. 'java, spring, react').")
     @PutMapping("/skills")
     public ResponseEntity<Map<String, String>> updateSkills(
             @RequestBody Map<String, String> body,
@@ -252,6 +267,7 @@ public class ApplicationController {
      * GET /api/applications/parse-resume
      * Parses the authenticated student's uploaded resume and returns extracted data.
      */
+    @Operation(summary = "Parse Resume", description = "Parse the authenticated student's uploaded resume and return extracted name, email, skills, and education.")
     @GetMapping("/parse-resume")
     public ResponseEntity<ParsedResume> parseResume(HttpServletRequest request) {
         User user = (User) request.getAttribute("user");
