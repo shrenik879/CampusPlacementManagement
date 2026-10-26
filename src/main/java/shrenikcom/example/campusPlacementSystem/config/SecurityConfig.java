@@ -14,6 +14,8 @@ public class SecurityConfig {
             // Application public endpoints
             "/api/auth/**",
             "/api/dashboard/**",
+            // Health check (used by Render health probe)
+            "/api/health",
             // Swagger UI static assets
             "/swagger-ui/**",
             "/swagger-ui.html",

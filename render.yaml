@@ -1,0 +1,65 @@
+# render.yaml — Render deployment configuration for Campus Placement Management System
+# Backend: Spring Boot 4.x (Java 21), Maven
+# Docs: https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: campus-placement-backend
+    runtime: java
+    # Root of the Spring Boot project (pom.xml lives here)
+    rootDir: .
+    # Build: compile & package, skip tests (they require a live DB)
+    buildCommand: ./mvnw clean package -DskipTests
+    # Start: run prod profile; Render injects PORT automatically
+    startCommand: java -Dspring.profiles.active=prod -jar target/campusPlacementSystem-0.0.1-SNAPSHOT.jar
+    # Render's health check — Render will poll this to confirm the service is up
+    healthCheckPath: /api/health
+    # Java 21 runtime
+    envVars:
+      # ── Database (PlanetScale / Aiven / Railway MySQL) ─────────────────────
+      - key: DB_HOST
+        sync: false   # set manually in Render dashboard
+      - key: DB_PORT
+        value: "3306"
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+
+      # ── JWT ────────────────────────────────────────────────────────────────
+      - key: JWT_SECRET
+        sync: false   # generate with: openssl rand -base64 64
+
+      # ── Cloudinary (file / resume uploads) ────────────────────────────────
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+
+      # ── Gemini AI (resume parsing / recommendations) ───────────────────────
+      - key: GEMINI_API_KEY
+        sync: false
+
+      # ── Email (Gmail SMTP) ─────────────────────────────────────────────────
+      - key: MAIL_USERNAME
+        sync: false
+      - key: MAIL_PASSWORD
+        sync: false
+
+      # ── Redis (Upstash or Render Redis) ───────────────────────────────────
+      - key: REDIS_HOST
+        sync: false
+      - key: REDIS_PORT
+        value: "6379"
+
+      # ── Frontend URL (used in password reset emails) ───────────────────────
+      # Set this to your actual Vercel deployment URL
+      - key: FRONTEND_URL
+        sync: false   # e.g. https://campus-placement.vercel.app
+
+      # ── CORS (extra allowed origins beyond FRONTEND_URL) ───────────────────
+      # Leave empty unless you have staging/preview URLs to allow
+      - key: CORS_EXTRA_ORIGINS
+        value: ""

@@ -31,18 +31,33 @@ public class OpenApiConfig {
     @Value("${server.port:8081}")
     private String serverPort;
 
+    /**
+     * Public base URL of the backend.
+     * On Render this is automatically set as the RENDER_EXTERNAL_URL env var
+     * (e.g. https://your-service.onrender.com).
+     * Falls back to http://localhost:<port> for local development.
+     */
+    @Value("${RENDER_EXTERNAL_URL:}")
+    private String renderExternalUrl;
+
     @Bean
     public OpenAPI campusPlacementOpenAPI() {
+        Server localServer = new Server()
+                .url("http://localhost:" + serverPort)
+                .description("Local Development Server");
+
+        List<Server> servers = new java.util.ArrayList<>();
+        servers.add(localServer);
+
+        if (renderExternalUrl != null && !renderExternalUrl.isBlank()) {
+            servers.add(new Server()
+                    .url(renderExternalUrl)
+                    .description("Render Production Server"));
+        }
+
         return new OpenAPI()
                 .info(apiInfo())
-                .servers(List.of(
-                        new Server()
-                                .url("http://localhost:" + serverPort)
-                                .description("Local Development Server"),
-                        new Server()
-                                .url("http://3.208.20.63:" + serverPort)
-                                .description("AWS EC2 Production Server")
-                ))
+                .servers(servers)
                 .components(new Components()
                         .addSecuritySchemes("BearerAuth", jwtSecurityScheme())
                 );

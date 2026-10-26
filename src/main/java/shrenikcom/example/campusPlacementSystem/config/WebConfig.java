@@ -13,13 +13,20 @@ import shrenikcom.example.campusPlacementSystem.filter.RateLimitFilter;
 public class WebConfig implements WebMvcConfigurer {
 
     /**
-     * Frontend origin allowed for CORS.
-     * Set FRONTEND_URL env var on EC2 to the actual frontend address
-     * (e.g. http://your-ec2-ip:3000 or https://yourdomain.com).
+     * Primary frontend origin allowed for CORS.
+     * In production (Render): set FRONTEND_URL=https://your-app.vercel.app
      * Falls back to http://localhost:5173 for local development.
      */
     @Value("${FRONTEND_URL:http://localhost:5173}")
     private String frontendUrl;
+
+    /**
+     * Optional additional allowed origins as a comma-separated list.
+     * Example: CORS_EXTRA_ORIGINS=https://staging.vercel.app,http://localhost:3000
+     * Leave empty if not needed.
+     */
+    @Value("${CORS_EXTRA_ORIGINS:}")
+    private String corsExtraOrigins;
 
     @Override
     public void configureAsyncSupport(AsyncSupportConfigurer configurer) {
@@ -28,13 +35,23 @@ public class WebConfig implements WebMvcConfigurer {
 
     /**
      * CORS configuration.
-     * Allows only the configured frontend origin — never uses wildcard "*".
-     * allowCredentials=true is required for JWT cookies / auth headers.
+     * Allows the configured frontend origin(s) — never uses wildcard "*".
+     * allowCredentials=true is required for JWT auth headers.
      */
     @Override
     public void addCorsMappings(CorsRegistry registry) {
+        // Build allowed origins list: always include primary, add extras if provided
+        java.util.List<String> origins = new java.util.ArrayList<>();
+        origins.add(frontendUrl);
+        if (corsExtraOrigins != null && !corsExtraOrigins.isBlank()) {
+            for (String extra : corsExtraOrigins.split(",")) {
+                String trimmed = extra.trim();
+                if (!trimmed.isEmpty()) origins.add(trimmed);
+            }
+        }
+
         registry.addMapping("/**")
-                .allowedOrigins(frontendUrl)
+                .allowedOrigins(origins.toArray(new String[0]))
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(true)
