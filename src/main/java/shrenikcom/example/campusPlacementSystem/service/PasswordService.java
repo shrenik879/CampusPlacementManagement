@@ -20,7 +20,7 @@ public class PasswordService {
 
     /**
      * Frontend base URL used to construct password reset links.
-     * Set FRONTEND_URL env var on EC2 to your frontend address.
+     * Set FRONTEND_URL env var in Render dashboard to your Vercel deployment URL.
      * Falls back to http://localhost:5173 for local development.
      */
     @Value("${frontend.url}")

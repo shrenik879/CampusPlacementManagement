@@ -25,6 +25,12 @@ services:
         sync: false
       - key: DB_PASSWORD
         sync: false
+      # DB_SSL: set to "true" for Aiven/PlanetScale/Railway (they require SSL)
+      # DB_SSL_VERIFY: set to "false" for Aiven (self-signed CA); "true" for PlanetScale
+      - key: DB_SSL
+        value: "true"
+      - key: DB_SSL_VERIFY
+        value: "false"
 
       # ── JWT ────────────────────────────────────────────────────────────────
       - key: JWT_SECRET
