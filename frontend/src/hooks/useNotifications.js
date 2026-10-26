@@ -77,7 +77,10 @@ export default function useNotifications(enabled = true) {
       client = new Client({
         // SockJS factory — REQUIRED when backend uses .withSockJS()
         webSocketFactory: () => new SockJS(
-          `${import.meta.env.VITE_API_URL || ''}/ws?token=${encodeURIComponent(token)}`
+          // VITE_WS_URL must be set to wss://your-render-service.onrender.com in production
+          // because Vercel cannot proxy WebSocket upgrades.
+          // Falls back to relative /ws for local dev (vite.config.js proxy handles it).
+          `${import.meta.env.VITE_WS_URL || import.meta.env.VITE_API_URL || ''}/ws?token=${encodeURIComponent(token)}`
         ),
         reconnectDelay: RECONNECT_DELAY_MS,
         onConnect: () => {
