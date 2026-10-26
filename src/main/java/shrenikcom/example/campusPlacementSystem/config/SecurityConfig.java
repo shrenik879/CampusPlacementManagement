@@ -11,6 +11,8 @@ public class SecurityConfig {
 
     /** Paths that must always be publicly accessible — no JWT required. */
     private static final String[] PUBLIC_PATHS = {
+            // Root endpoint
+            "/",
             // Application public endpoints
             "/api/auth/**",
             "/api/dashboard/**",
